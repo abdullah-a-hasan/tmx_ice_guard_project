@@ -10,6 +10,13 @@ Usage:
 import os
 import sys
 
+# Work around a known pywebview issue on Windows where the .NET accessibility
+# layer recursively traverses AccessibilityObject.Bounds.Empty until Python's
+# default recursion limit (1 000) is hit.
+# See: https://github.com/nicegui-dev/pywebview/issues/1032
+if sys.platform == "win32":
+    sys.setrecursionlimit(10_000)
+
 # Make the project root importable regardless of how the script is invoked
 _here = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.dirname(_here)
