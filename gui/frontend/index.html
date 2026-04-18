@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TMX Ice Guard</title>
+  <link rel="stylesheet" href="css/pico.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ── App header ──────────────────────────────────────────────────────── -->
+  <header class="app-header">
+    <h1>TMX Ice Guard</h1>
+    <small>Convert TMX context metadata between translation platforms</small>
+  </header>
+
+  <!-- ── Main form ───────────────────────────────────────────────────────── -->
+  <main class="container">
+
+    <!-- Input files -->
+    <label for="file-list-box">Input TMX Files</label>
+    <div class="file-display" style="margin-bottom:var(--spacing)">
+      <div class="file-list-box" id="file-list-box" role="listbox" aria-label="Selected TMX files">
+        <span id="file-list-placeholder">No files selected</span>
+      </div>
+      <button class="outline" id="btn-browse-files" type="button">Browse…</button>
+    </div>
+
+    <!-- Output folder -->
+    <label for="folder-path">Output Folder</label>
+    <div class="folder-display" style="margin-bottom:var(--spacing)">
+      <input type="text" id="folder-path" readonly placeholder="No folder selected" />
+      <button class="outline" id="btn-browse-folder" type="button">Browse…</button>
+    </div>
+
+    <!-- Platform dropdowns -->
+    <div class="options-row" style="margin-bottom:var(--spacing)">
+      <div>
+        <label for="source-platform">Source Platform</label>
+        <select id="source-platform"></select>
+      </div>
+      <div>
+        <label for="target-platform">Target Platform</label>
+        <select id="target-platform"></select>
+      </div>
+    </div>
+
+    <!-- Pretty-print checkbox -->
+    <div style="margin-bottom:calc(var(--spacing)*1.25)">
+      <label class="checkbox-label">
+        <input type="checkbox" id="pretty-print" />
+        Pretty-print output XML
+      </label>
+    </div>
+
+    <!-- Inline alert (hidden by default) -->
+    <div id="inline-alert" class="alert alert-error" hidden></div>
+
+    <!-- Convert button -->
+    <div class="convert-row">
+      <button id="btn-convert" type="button">Convert</button>
+      <span id="convert-status" style="font-size:.9rem;color:var(--muted-color)"></span>
+    </div>
+
+    <!-- ── Results section (hidden until first conversion) ─────────────── -->
+    <section id="results-section" hidden>
+      <hr style="margin:calc(var(--spacing)*1.25) 0" />
+      <p id="results-summary"></p>
+      <div class="results-table-wrapper">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>TUs</th>
+              <th>Source (detected)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="results-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
