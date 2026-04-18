@@ -15,8 +15,12 @@ class Api:
     """Python object exposed to the JavaScript frontend via pywebview js_api."""
 
     def __init__(self):
-        # Injected after window creation: api.window = window
-        self.window = None
+        # Injected after window creation: api._window = window
+        # The underscore prefix is intentional — pywebview's get_functions()
+        # skips private attributes, which prevents it from recursively
+        # traversing Window.native (the WinForms Form) and hitting the
+        # infinite AccessibilityObject.Bounds.Empty chain on Windows.
+        self._window = None
 
     # ------------------------------------------------------------------
     # File / folder dialogs
@@ -27,7 +31,7 @@ class Api:
 
         Returns a list of absolute file paths, or an empty list if cancelled.
         """
-        result = self.window.create_file_dialog(
+        result = self._window.create_file_dialog(
             webview.OPEN_DIALOG,
             allow_multiple=True,
             file_types=("TMX Files (*.tmx)", "All Files (*.*)"),
@@ -41,7 +45,7 @@ class Api:
 
         Returns the chosen directory path as a string, or None if cancelled.
         """
-        result = self.window.create_file_dialog(webview.FOLDER_DIALOG)
+        result = self._window.create_file_dialog(webview.FOLDER_DIALOG)
         if result is None:
             return None
         # pywebview returns a tuple with a single path for FOLDER_DIALOG
