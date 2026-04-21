@@ -27,7 +27,7 @@ def main():
     html_url = f"file:///{html_path.replace(os.sep, '/')}"
 
     window = webview.create_window(
-        title="TMX Ice Guard",
+        title="TMX ICE Guard",
         url=html_url,
         js_api=api,
         width=800,

@@ -82,11 +82,10 @@ function renderFileList() {
 function populatePlatforms(platforms) {
   [sourcePlatformSel, targetPlatformSel].forEach(sel => {
     sel.innerHTML = '';
-    platforms.forEach(key => {
+    platforms.forEach(item => {
       const opt = document.createElement('option');
-      opt.value = key;
-      // Capitalise for display; keep 'auto' lowercase
-      opt.textContent = key === 'auto' ? 'auto (detect)' : key.charAt(0).toUpperCase() + key.slice(1);
+      opt.value = item.key;
+      opt.textContent = item.label;
       sel.appendChild(opt);
     });
   });

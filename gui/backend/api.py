@@ -57,13 +57,18 @@ class Api:
     # ------------------------------------------------------------------
 
     def get_platforms(self):
-        """Return the list of supported platform keys from tmx_context_defs.
+        """Return the list of supported platforms from tmx_context_defs.
+
+        Each entry is a dict with ``key`` (the internal identifier used for
+        conversion) and ``label`` (the human-readable display name).
 
         The special value "auto" (auto-detect source) is prepended so the UI
         can offer it as the default source option.
         """
-        keys = list(tmx_context_defs.keys())
-        return ["auto"] + keys
+        platforms = [{"key": "auto", "label": "Auto (detect)"}]
+        for key, defs in tmx_context_defs.items():
+            platforms.append({"key": key, "label": defs.get("label", key)})
+        return platforms
 
     # ------------------------------------------------------------------
     # Conversion
