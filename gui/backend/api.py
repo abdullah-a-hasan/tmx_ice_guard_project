@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 
@@ -74,6 +75,11 @@ class Api:
         The original API is single-file only; multi-file support is implemented
         here by looping and calling convert() once per file.
 
+        Live progress events are pushed to the JS frontend via evaluate_js()
+        as each file is processed.  Every event dict is enriched with:
+          file_index  – 0-based index of the current file
+          total_files – total number of files being converted
+
         Parameters
         ----------
         files : list[str]   Absolute paths of input TMX files.
@@ -88,40 +94,72 @@ class Api:
                     filename, tu_count, detected_source, success, error
         """
         results = []
+        total = len(files)
 
-        for in_path in files:
+        for file_index, in_path in enumerate(files):
             stem = os.path.splitext(os.path.basename(in_path))[0]
             out_path = os.path.join(out_dir, f"{stem}_converted.tmx")
 
             # Reset source_platform for each file so "auto" re-detects every time
             effective_source = source_platform
+            info = None
 
             try:
-                info = ICEGuard.convert(
+                for event in ICEGuard.convert(
                     in_file=in_path,
                     out_file=out_path,
                     source_platform=effective_source,
                     target_platform=target_platform,
                     pretty=bool(pretty),
-                )
-                results.append(
-                    {
-                        "filename": os.path.basename(in_path),
-                        "tu_count": info.get("count", 0),
-                        "detected_source": info.get("source_platform", effective_source),
-                        "success": True,
-                        "error": None,
-                    }
-                )
+                ):
+                    event["file_index"] = file_index
+                    event["total_files"] = total
+
+                    if event["type"] == "flavor":
+                        effective_source = event["platform"]
+                    elif event["type"] == "done":
+                        info = event
+
+                    self._push_progress(event)
+
+                file_result = {
+                    "filename": os.path.basename(in_path),
+                    "tu_count": info.get("count", 0) if info else 0,
+                    "detected_source": info.get("source_platform", effective_source) if info else effective_source,
+                    "success": True,
+                    "error": None,
+                }
             except Exception as exc:
-                results.append(
-                    {
-                        "filename": os.path.basename(in_path),
-                        "tu_count": 0,
-                        "detected_source": effective_source,
-                        "success": False,
-                        "error": str(exc),
-                    }
-                )
+                file_result = {
+                    "filename": os.path.basename(in_path),
+                    "tu_count": 0,
+                    "detected_source": effective_source,
+                    "success": False,
+                    "error": str(exc),
+                }
+
+            results.append(file_result)
+
+            done_event = {
+                "type": "file_done",
+                "file_index": file_index,
+                "total_files": total,
+                **file_result,
+            }
+            self._push_progress(done_event)
 
         return results
+
+    def _push_progress(self, event):
+        """Push a progress event dict to the JS frontend via evaluate_js.
+
+        Silently skips if the window bridge is not available.
+        """
+        if self._window is None:
+            return
+        try:
+            self._window.evaluate_js(
+                "window.onConversionProgress(" + json.dumps(event, ensure_ascii=True) + ")"
+            )
+        except Exception:
+            pass

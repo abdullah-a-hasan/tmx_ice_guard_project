@@ -9,6 +9,7 @@
 // ── State ─────────────────────────────────────────────────────────────────
 let selectedFiles  = [];   // array of absolute paths
 let selectedFolder = null; // string or null
+let liveRowsAdded  = 0;    // rows already inserted via onConversionProgress
 
 // ── DOM refs ──────────────────────────────────────────────────────────────
 const fileListBox       = document.getElementById('file-list-box');
@@ -97,7 +98,68 @@ function populatePlatforms(platforms) {
   }
 }
 
-// ── Render results table ──────────────────────────────────────────────────
+// ── Live progress callback (called by Python via evaluate_js) ─────────────
+
+window.onConversionProgress = function (event) {
+  const fileNum   = (event.file_index ?? 0) + 1;
+  const fileTotal = event.total_files ?? 1;
+  const prefix    = `File ${fileNum} / ${fileTotal}`;
+
+  if (event.type === 'flavor') {
+    convertStatus.textContent = `${prefix} — Detected: ${event.platform}`;
+  } else if (event.type === 'tu_progress') {
+    convertStatus.textContent = `${prefix} — TU ${event.count.toLocaleString()}`;
+  } else if (event.type === 'file_done') {
+    // Append a result row immediately
+    appendResultRow(event);
+    liveRowsAdded++;
+
+    // Update running summary
+    const successSoFar = resultsTbody.querySelectorAll('.status-ok').length;
+    const totalSoFar   = liveRowsAdded;
+    const tusSoFar     = [...resultsTbody.querySelectorAll('td:nth-child(2)')]
+      .reduce((sum, td) => sum + (parseInt(td.dataset.tuCount, 10) || 0), 0);
+
+    resultsSummary.textContent =
+      `${successSoFar} of ${totalSoFar} file${totalSoFar !== 1 ? 's' : ''} converted` +
+      ` — ${tusSoFar.toLocaleString()} TU${tusSoFar !== 1 ? 's' : ''} total`;
+    resultsSection.hidden = false;
+  }
+};
+
+function appendResultRow(r) {
+  const tr = document.createElement('tr');
+
+  // Filename
+  const tdFile = document.createElement('td');
+  tdFile.textContent = r.filename;
+  tr.appendChild(tdFile);
+
+  // TU count (store raw value for running total calculation)
+  const tdTU = document.createElement('td');
+  const tuCount = r.success ? (r.tu_count || 0) : 0;
+  tdTU.textContent = r.success ? tuCount.toLocaleString() : '\u2014';
+  tdTU.dataset.tuCount = tuCount;
+  tr.appendChild(tdTU);
+
+  // Detected source
+  const tdSrc = document.createElement('td');
+  tdSrc.textContent = r.detected_source || '\u2014';
+  tr.appendChild(tdSrc);
+
+  // Status
+  const tdStatus = document.createElement('td');
+  if (r.success) {
+    tdStatus.innerHTML = '<span class="status-ok">✓</span>';
+  } else {
+    tdStatus.innerHTML = `<span class="status-err">✗ ${escapeHtml(r.error || 'Unknown error')}</span>`;
+  }
+  tr.appendChild(tdStatus);
+
+  resultsTbody.appendChild(tr);
+}
+
+
 
 function renderResults(results) {
   resultsTbody.innerHTML = '';
@@ -120,12 +182,12 @@ function renderResults(results) {
 
     // TU count
     const tdTU = document.createElement('td');
-    tdTU.textContent = r.success ? r.tu_count.toLocaleString() : '—';
+    tdTU.textContent = r.success ? r.tu_count.toLocaleString() : '\u2014';
     tr.appendChild(tdTU);
 
     // Detected source
     const tdSrc = document.createElement('td');
-    tdSrc.textContent = r.detected_source || '—';
+    tdSrc.textContent = r.detected_source || '\u2014';
     tr.appendChild(tdSrc);
 
     // Status
@@ -203,6 +265,8 @@ btnConvert.addEventListener('click', async () => {
   btnConvert.innerHTML = '<span class="spinner"></span> Converting…';
   convertStatus.textContent = '';
   resultsSection.hidden = true;
+  resultsTbody.innerHTML = '';
+  liveRowsAdded = 0;
 
   try {
     const results = await window.pywebview.api.convert_files(
@@ -212,7 +276,10 @@ btnConvert.addEventListener('click', async () => {
       targetPlatformSel.value,
       prettyCheckbox.checked
     );
-    renderResults(results);
+    // Only fall back to renderResults if live events weren't received
+    if (liveRowsAdded === 0) {
+      renderResults(results);
+    }
   } catch (err) {
     showAlert('Conversion failed: ' + err);
   } finally {

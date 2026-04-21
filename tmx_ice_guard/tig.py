@@ -95,7 +95,7 @@ class ICEGuard:
                     # Get tool name from header, if auto, and load settings tool settings from tmx_context_defs
                     if source_platform == "auto":
                         source_platform = ICEGuard._detect_tmx_flavor(elem)
-                        print(f"Detected TMX flavor: {source_platform}")
+                        yield {"type": "flavor", "platform": source_platform}
                     if source_platform not in tmx_context_defs.keys() or target_platform not in tmx_context_defs.keys():
                         raise ValueError(f"Invalid source and/or target platform. Must be one of: " + ", ".join(tmx_context_defs.keys()))
                     input_prev_prop = tmx_context_defs[source_platform].get('prev_text_prop')
@@ -117,7 +117,7 @@ class ICEGuard:
                 if event == 'start' and elem.tag == 'tu':
                     counter += 1
                     if counter % 1000 == 0:
-                        print(f"Processing TU {counter}")
+                        yield {"type": "tu_progress", "count": counter}
 
                     # Process and rename next context props
                     if input_next_prop and output_next_prop:
@@ -203,7 +203,7 @@ class ICEGuard:
                     else:
                         output_file.write(ICEGuard._pretty_print_tu_except_seg(ET.tostring(elem, encoding='UTF-8'), clean_empty_lines=True))
                     elem.clear()
-        return {"count": counter, "source_platform": source_platform, "target_platform": target_platform}
+        yield {"type": "done", "count": counter, "source_platform": source_platform, "target_platform": target_platform}
 
 
 # Press the green button in the gutter to run the script.
