@@ -1,8 +1,8 @@
-# TMX Ice Guard
+# TMX ICE Guard
 
 **Version 1.0b0**
 
-TMX Ice Guard is a Python library (and optional desktop GUI) for converting **ICE context metadata** between different **TMX (Translation Memory eXchange)** platform flavors. Translation tools encode "previous/next segment" context in incompatible ways; TMX Ice Guard normalises and remaps those properties so ICE matches survive round-trips across platforms.
+TMX ICE (In-Context Exact) Guard is a Python library (and optional desktop GUI) for converting **ICE context metadata** between different **TMX (Translation Memory eXchange)** platform flavors. Translation tools encode "previous/next segment" context in incompatible ways; TMX ICE Guard normalises and remaps those properties so ICE matches survive round-trips across platforms.
 
 ## Features
 
@@ -37,28 +37,28 @@ pip install pywebview>=5.0
 from tmx_ice_guard import ICEGuard
 
 for event in ICEGuard.convert(
-    in_file="example.tmx",
-    out_file="example_converted.tmx",
-    source_platform="auto",   # auto-detect from creationtool header
-    target_platform="xtm",
-    pretty=False,
+  in_file="example.tmx",
+  out_file="example_converted.tmx",
+  source_platform="auto",  # auto-detect from creationtool header
+  target_platform="xtm",
+  pretty=False,
 ):
-    if event["type"] == "flavor":
-        print(f"Detected source platform: {event['platform']}")
-    elif event["type"] == "tu_progress":
-        print(f"Processed {event['count']} TUs…")
-    elif event["type"] == "done":
-        print(f"Done — {event['count']} TUs converted "
-              f"({event['source_platform']} → {event['target_platform']})")
+  if event["type"] == "flavor":
+    print(f"Detected source platform: {event['platform']}")
+  elif event["type"] == "tu_progress":
+    print(f"Processed {event['count']} TUs…")
+  elif event["type"] == "done":
+    print(f"Done — {event['count']} TUs converted "
+       f"({event['source_platform']} → {event['target_platform']})")
 ```
 
 **Event types**
 
-| `type`        | Extra keys                              | When emitted                              |
+| `type`    | Extra keys               | When emitted               |
 |---------------|-----------------------------------------|-------------------------------------------|
-| `flavor`      | `platform`                              | Once, after source platform is detected   |
-| `tu_progress` | `count`                                 | Every 1 000 TUs                           |
-| `done`        | `count`, `source_platform`, `target_platform` | After all TUs have been written     |
+| `flavor`   | `platform`               | Once, after source platform is detected  |
+| `tu_progress` | `count`                 | Every 1 000 TUs              |
+| `done`    | `count`, `source_platform`, `target_platform` | After all TUs have been written   |
 
 ### Desktop GUI
 
@@ -90,14 +90,6 @@ python gui/app.py
 python -m gui.app
 ```
 
-### What the GUI does
-
-- **Select files** — choose one or more `.tmx` files via a multi-select file dialog.
-- **Output folder** — pick the directory where converted files will be saved (each output file is named `<original>_converted.tmx`).
-- **Platform pair** — select the source platform (or *Auto* to detect it from the file header) and the target platform.
-- **Pretty-print** — optionally enable human-readable XML formatting in the output.
-- **Live progress table** — monitor per-file progress in real time as each file is processed.
-
 ### Platform notes
 
 | OS | WebView backend | Notes |
@@ -108,14 +100,14 @@ python -m gui.app
 
 ## Supported Platforms
 
-| Key         | Display name                   | Context level | Prev-text property        | Next-text property        |
+| Key     | Display name          | Context level | Prev-text property    | Next-text property    |
 |-------------|--------------------------------|---------------|---------------------------|---------------------------|
-| `phrase`    | Phrase                         | tuv           | `context_prev`            | `context_next`            |
-| `memoq`     | memoQ                          | tuv           | `x-context-pre`           | `x-context-post`          |
-| `xtm`       | XTM                            | tu            | `x-previous-source-text`  | `x-next-source-text`      |
-| `gl`        | TransPerfect (GL / Wordfast)   | tu            | `previousMd5Segment`      | `nextMd5Segment`          |
-| `trados`    | RWS (Trados)                   | tu            | `x-ContextContent`        | —                         |
-| `transifex` | Transifex                      | tu            | `context`                 | —                         |
+| `phrase`  | Phrase             | tuv      | `context_prev`      | `context_next`      |
+| `memoq`   | memoQ             | tuv      | `x-context-pre`      | `x-context-post`     |
+| `xtm`    | XTM              | tu      | `x-previous-source-text` | `x-next-source-text`   |
+| `gl`    | TransPerfect (GL / Wordfast)  | tu      | `previousMd5Segment`   | `nextMd5Segment`     |
+| `trados`  | RWS (Trados)          | tu      | `x-ContextContent`    | —             |
+| `transifex` | Transifex           | tu      | `context`         | —             |
 
 Pass `source_platform="auto"` to let the library detect the platform automatically.
 
