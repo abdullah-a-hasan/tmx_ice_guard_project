@@ -2,13 +2,13 @@
 
 **Version 1.0b0**
 
-TMX ICE (In-Context Exact) Guard is a Python library (and optional desktop GUI) for converting **ICE context metadata** between different **TMX (Translation Memory eXchange)** platform flavors. Translation tools encode "previous/next segment" context in incompatible ways; TMX ICE Guard normalises and remaps those properties so ICE matches survive round-trips across platforms.
+TMX ICE (In-Context Exact) Guard is a Python library (and optional desktop GUI) for converting **context metadata** between different **TMX (Translation Memory eXchange)** platform flavors. Translation tools encode "previous/next segment" context in incompatible ways; TMX ICE Guard normalises and remaps those properties so ICE matches survive round-trips across platforms.
 
 ## Features
 
 - **Remap ICE context metadata** between translation platform flavors in a single pass over the TMX file.
 - **Auto-detect source platform** from the TMX `creationtool` header — no need to know which tool produced the file.
-- **Supported platforms:** Phrase/Memsource, memoQ, XTM, TransPerfect (GlobalLink / Wordfast), RWS (Trados), Transifex.
+- **6 Supported platforms:** Phrase/Memsource, memoQ, XTM, TransPerfect (GlobalLink / Wordfast), RWS (Trados), Transifex.
 - **Optional pretty-print** of output XML for human-readable diffs.
 - **Zero runtime dependencies** for the library itself — uses only the Python standard library.
 - **Desktop GUI** built with [pywebview](https://pywebview.flowrl.com/) for a point-and-click workflow (multi-file batch conversion with live progress).
